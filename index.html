@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://cdnjs.cloudflare.com https://*.tile.openstreetmap.org https://server.arcgisonline.com; connect-src https://script.google.com https://script.googleusercontent.com; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>M&amp;A Capital – Acceso privado</title>
+<title>PROPIEDADES FRI</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -229,8 +229,8 @@ table.bit{width:100%;border-collapse:collapse;font-size:12px}table.bit td,table.
 <body>
 <div id="vLogin" class="auth" style="display:none">
   <form class="box" id="fLogin" autocomplete="on">
-    <h1>M&amp;A Capital</h1>
-    <div class="sub">Propiedades FRI · Acceso privado</div>
+    <h1>PROPIEDADES FRI</h1>
+    <div class="sub">Acceso privado</div>
     <label for="lUsuario">Usuario</label>
     <input id="lUsuario" name="username" autocomplete="username" autocapitalize="none" spellcheck="false">
     <label for="lClave">Contraseña</label>
@@ -257,7 +257,7 @@ table.bit{width:100%;border-collapse:collapse;font-size:12px}table.bit td,table.
 <header>
   <div class="top">
     <div>
-      <h1>M&amp;A Capital – MIFI BIENES · Propiedades FRI</h1>
+      <h1>PROPIEDADES FRI</h1>
       <div class="sub" id="hdrSub"></div>
     </div>
     <div class="uarea"><span class="conf">Confidencial</span><span id="uNombre"></span><span class="rol" id="uRol"></span>
@@ -396,7 +396,7 @@ const DL_ICON='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" strok
 
 /* ======================= REGLAS ======================= */
 function categoria(p){
-  if (p.tipo_m) return p.tipo_m;            /* tipo registrado en el Excel MIFI_Propiedades_FRI */
+  if (p.tipo_m) return p.tipo_m;            /* tipo registrado en la hoja Datos */
   const d=(p.desc||"").toUpperCase();
   if (d.includes("APARTAMENTO")) return "Apartamento";
   return "Sin clasificar";
@@ -540,7 +540,7 @@ function chartPNG(key){
   const g=cv.getContext("2d"); g.scale(S,S);
   g.fillStyle="#ffffff"; g.fillRect(0,0,W,H);
   g.fillStyle="#0b0b0b"; g.font="600 18px Segoe UI, Arial, sans-serif"; g.fillText(ch.title,24,36);
-  g.fillStyle="#52514e"; g.font="12px Segoe UI, Arial, sans-serif"; g.fillText(`M&A Capital – Propiedades FRI · ${total} fincas · ${GENERATED}`,24,56);
+  g.fillStyle="#52514e"; g.font="12px Segoe UI, Arial, sans-serif"; g.fillText(`Propiedades FRI · ${total} fincas · ${GENERATED}`,24,56);
   if(!isBar){
     const cx=140,cy=H/2+20,R=100,r=62; let a0=-Math.PI/2;
     ents.filter(e=>e.v).forEach(e=>{const a1=a0+2*Math.PI*e.v/total;
@@ -660,7 +660,7 @@ function filtrosTxt(){
   [["#q","Búsqueda"],["#fProv","Provincia"],["#fCorr","Corregimiento"],["#fCat","Tipo"],["#fEst","Estado"],["#fEtapa","Etapa"]]
     .forEach(([id,l])=>{ if($(id).value && $(id).style.display!=="none") out.push([l, $(id).value]); });
   if(out.length===1) out.push(["Filtros","Ninguno (todas las fincas)"]);
-  out.push(["Fincas exportadas", ROWS.length],["Fecha de descarga", new Date().toLocaleString("es-PA")],["Fuente", "Dashboard Propiedades FRI – M&A Capital"]);
+  out.push(["Fincas exportadas", ROWS.length],["Fecha de descarga", new Date().toLocaleString("es-PA")],["Fuente", "Dashboard Propiedades FRI"]);
   return out;
 }
 function toExcel(cols, nombre){
