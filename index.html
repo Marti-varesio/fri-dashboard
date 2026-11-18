@@ -494,17 +494,17 @@ $("#kpis").innerHTML = [
 /* ======================= GRÁFICOS ======================= */
 const CHARTS={};
 const cc=countBy(DATA,p=>p.cat);
-CHARTS.cat={title:"Fincas por tipo", entries:CATS.map(k=>({k,v:cc[k]||0,c:CAT_COLOR[k]}))};
+CHARTS.cat={title:"Fincas por tipo", entries:CATS.map(k=>({k,v:cc[k]||0,c:CAT_COLOR[k],vl:sum(DATA.filter(p=>p.cat===k),p=>p.vl)}))};
 const pc=Object.entries(countBy(DATA,p=>p.prov)).sort((a,b)=>b[1]-a[1]);
 const pal=[C.s1,C.s2,C.s3,C.s4,C.s5,C.s6];
-const provE=pc.slice(0,6).map(([k,v],i)=>({k,v,c:pal[i]}));
-if(pc.length>6) provE.push({k:`Otras (${pc.slice(6).map(r=>r[0]).join(", ")})`, v:pc.slice(6).reduce((s,r)=>s+r[1],0), c:C.gray});
+const provE=pc.slice(0,6).map(([k,v],i)=>({k,v,c:pal[i],vl:sum(DATA.filter(p=>p.prov===k),p=>p.vl)}));
+if(pc.length>6) provE.push({k:`Otras (${pc.slice(6).map(r=>r[0]).join(", ")})`, v:pc.slice(6).reduce((s,r)=>s+r[1],0), c:C.gray, vl:sum(DATA.filter(p=>pc.slice(6).some(r=>r[0]===p.prov)),p=>p.vl)});
 CHARTS.prov={title:"Fincas por provincia", entries:provE};
 CHARTS.proc={title:"Resumen de procesos", entries:ETAPAS.map(e=>{const a=DATA.filter(p=>p.etapa===e.k);
   return {k:e.k,v:a.length,c:e.c,vl:sum(a,p=>p.vl),vs:sum(a,p=>p.vs)};})};
 
 function donut(el,ch){
-  const ents=ch.entries.filter(e=>e.v), total=ents.reduce((s,e)=>s+e.v,0), R=95,r=58,cx=100,cy=100;
+  const ents=ch.entries.filter(e=>e.v), total=ents.reduce((s,e)=>s+e.v,0), totalVL=ents.reduce((s,e)=>s+(e.vl||0),0), R=95,r=58,cx=100,cy=100;
   let a0=-Math.PI/2, paths="";
   ents.forEach(e=>{
     const a1=a0+2*Math.PI*e.v/total, large=(a1-a0)>Math.PI?1:0, P=(a,rad)=>[cx+rad*Math.cos(a),cy+rad*Math.sin(a)];
@@ -516,7 +516,7 @@ function donut(el,ch){
     <text x="100" y="104" text-anchor="middle" font-size="30" font-weight="600" fill="#0b0b0b">${total}</text>
     <text x="100" y="126" text-anchor="middle" font-size="13" fill="#52514e">fincas</text></svg>`;
   el.querySelectorAll(".slice").forEach((s,i)=>{const e=ents[i];
-    hover(s,`<span class="sw" style="background:${e.c}"></span><b>${esc(e.k)}</b><br>${e.v} fincas · ${pct(e.v,total)}${CAT_DESC[e.k]?`<br><span style="color:#8a8984">${CAT_DESC[e.k]}</span>`:""}`);});
+    hover(s,`<span class="sw" style="background:${e.c}"></span><b>${esc(e.k)}</b><br>${e.v} fincas · ${pct(e.v,total)}<br>Valor en libros <b>${usd(e.vl)}</b> · ${pct(e.vl,totalVL)} del total${CAT_DESC[e.k]?`<br><span style="color:#8a8984">${CAT_DESC[e.k]}</span>`:""}`);});
 }
 donut($("#pieCat"),CHARTS.cat); donut($("#pieProv"),CHARTS.prov);
 
@@ -533,9 +533,9 @@ $("#procTiles").innerHTML = [
 
 /* descarga de gráficos como imagen PNG (con leyenda y títulos) */
 function chartPNG(key){
-  const ch=CHARTS[key], isBar=key==="proc", S=2, W=isBar?760:620;
+  const ch=CHARTS[key], isBar=key==="proc", S=2, W=isBar?760:820;
   const ents=ch.entries, total=ents.reduce((s,e)=>s+e.v,0);
-  const rows=ents.length, H=isBar? 150+rows*30 : Math.max(330, 110+rows*30);
+  const rows=ents.length, H=isBar? 150+rows*30 : Math.max(360, 160+rows*30);
   const cv=document.createElement("canvas"); cv.width=W*S; cv.height=H*S;
   const g=cv.getContext("2d"); g.scale(S,S);
   g.fillStyle="#ffffff"; g.fillRect(0,0,W,H);
@@ -549,11 +549,18 @@ function chartPNG(key){
     g.fillStyle="#0b0b0b"; g.font="600 28px Segoe UI, Arial, sans-serif"; g.textAlign="center"; g.fillText(total,cx,cy+8);
     g.font="12px Segoe UI, Arial, sans-serif"; g.fillStyle="#52514e"; g.fillText("fincas",cx,cy+26); g.textAlign="left";
     let y=cy-rows*30/2+18;
+    const totVL=ents.reduce((s,e)=>s+(e.vl||0),0);
+    g.font="600 12px Segoe UI, Arial, sans-serif"; g.fillStyle="#8a8984"; g.textAlign="right";
+    g.fillText("Fincas",W-250,y-26); g.fillText("%",W-196,y-26); g.fillText("Valor en libros",W-24,y-26); g.textAlign="left";
     ents.forEach(e=>{ g.fillStyle=e.c; g.fillRect(272,y-11,13,13);
       g.fillStyle="#0b0b0b"; g.font="13px Segoe UI, Arial, sans-serif";
-      let lab=e.k; while(g.measureText(lab).width>230 && lab.length>4) lab=lab.slice(0,-2); if(lab!==e.k) lab+="…";
-      g.fillText(lab,294,y); g.textAlign="right"; g.font="600 13px Segoe UI, Arial, sans-serif"; g.fillText(e.v,W-70,y);
-      g.font="13px Segoe UI, Arial, sans-serif"; g.fillStyle="#8a8984"; g.fillText(pct(e.v,total),W-22,y); g.textAlign="left"; y+=30;});
+      let lab=e.k; while(g.measureText(lab).width>250 && lab.length>4) lab=lab.slice(0,-2); if(lab!==e.k) lab+="…";
+      g.fillText(lab,294,y); g.textAlign="right"; g.font="600 13px Segoe UI, Arial, sans-serif"; g.fillText(e.v,W-250,y);
+      g.font="13px Segoe UI, Arial, sans-serif"; g.fillStyle="#8a8984"; g.fillText(pct(e.v,total),W-196,y);
+      g.fillStyle="#0b0b0b"; g.fillText(usd(e.vl),W-24,y); g.textAlign="left"; y+=30;});
+    g.strokeStyle="#e3e1da"; g.lineWidth=1; g.beginPath(); g.moveTo(272,y-18); g.lineTo(W-24,y-18); g.stroke();
+    g.font="600 13px Segoe UI, Arial, sans-serif"; g.fillStyle="#0b0b0b"; g.fillText("Total",294,y);
+    g.textAlign="right"; g.fillText(total,W-250,y); g.fillText(usd(totVL),W-24,y); g.textAlign="left";
   } else {
     let x=24; const bw=W-48, y0=80;
     ents.filter(e=>e.v).forEach((e,i,arr)=>{const w=bw*e.v/total-(i<arr.length-1?2:0); g.fillStyle=e.c; g.fillRect(x,y0,w,30); x+=w+2;});
